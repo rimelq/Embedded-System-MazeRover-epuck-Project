@@ -120,8 +120,6 @@ You can receive this page, already printed and cut, at the beginning of the TP, 
 >- How does the black line on the lower part of the image appear on the plot ? Is it normal or not ?
 >### Picture 1
 >Robot is in front of the sheet
->
-> ⚠ It misses here a little grey line! Photo will be corrected soon!
     <p float="left">
     <img src="pictures/LineDetection.jpg" alt="drawing" width="700"/>
     </p>
