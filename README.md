@@ -114,7 +114,8 @@ The synchronization between `CaptureImage` and `ProcessImage` works like as foll
 >- In the thread `ProcessImage`, use the code provided to read images from the camera and write a simple loop to extract one color of your choice from the images (you need to do bits manipulations)
 >- Then send them to the computer to visualize them. You need to send them relatively slowly if you don't want to loose bytes
 >- 💡 For example you can send only one image over two
->- Place the robot in front of the sheet as show on [Picture 1](#picture-1).
+>- Place the robot in front of the sheet as show on [Picture 1](#picture-1).    
+You can receive this page, already printed and cut, at the beginning of the TP, but you can also find it in the pictures subdirectory.
 >
 >- How does the black line on the lower part of the image appear on the plot ? Is it normal or not ?
 >### Picture 1
