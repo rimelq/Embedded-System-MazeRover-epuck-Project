@@ -9,8 +9,7 @@ e-puck2_main-processor/
 e-puck2_main-processor
 build/
 .dep/
-src/libssp.a
-src/libssp_nonshared.a
+*.a
 
 # MacOS specific files but always use if another user can work under MacOS
 .DS_Store
