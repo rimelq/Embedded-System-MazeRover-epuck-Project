@@ -283,8 +283,8 @@ reader_thd = serial_thread(sys.argv[1])
 reader_thd.start()
 
 #figure config
-fig, ax = plt.subplots(num=None, figsize=(10, 8), dpi=80)
-fig.canvas.set_window_title('Noisy plot')
+fig, ax = plt.subplots(num='Noisy plot', figsize=(10, 8), dpi=80)
+ax.set_title('Vector intensity vs Spatial domain time')
 plt.subplots_adjust(left=0.1, bottom=0.25)
 fig.canvas.mpl_connect('close_event', handle_close) #to detect when the window is closed and if we do a ctrl-c
 
