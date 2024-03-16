@@ -60,8 +60,8 @@ int main(void)
 	//the color detection can be controled from plotImage Python code
 	select_color_detection(GREEN_COLOR);
 
-	//disable motors by default. Can be enable from plotImage Python code
-	set_enabled_motors(false);
+	//enable motors by default. Can be chnaged from plotImage Python code
+	set_enabled_motors(true);
 
 	//stars the threads for the pi regulator and the processing of the image
 	pi_regulator_start();
