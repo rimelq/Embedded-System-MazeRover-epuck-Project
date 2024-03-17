@@ -7,23 +7,25 @@ However some packages are missing in order to run the python scripts provided fo
 
 - Windows 10 & 11:
 	```shell
-		python -m pip install matplotlib msvc-runtime pyserial
+	python -m pip install matplotlib msvc-runtime pyserial
 	```
 - MacOS:
 	```shell
-		python -m pip install matplotlib pyserial
+	python -m pip install matplotlib pyserial
 	```
-- Linux:
-	- Must be checked
+- Linux: Must be checked but for sure at minima: 
+	```shell
+	python -m pip install matplotlib pyserial
+	```
 
 ## Python script usage
-- For TP4:
-	Run the script plotImage.py in the terminal and give to it the com port as argument:
+- For TP4 run the script plotImage.py in the terminal and give to it the com port as argument:
 	- python path_to_the_script/plotImage.py SerialMonitorDeviceName
 
-- For TP5:
-	Run the script plotFFT.py in the terminal and give to it the com port as argument
+- For TP5 run the script plotFFT.py in the terminal and give to it the com port as argument
 	- python path_to_the_script\plotFFT.py SerialMonitorDeviceName
 
 ## Troubleshooting
 If you get a lot of Timeout messages in the terminal while trying to receive something from the e-puck2, quit the program, unplug the USB cable (or disable the bluetooth if used instead of the USB), shutdown the epuck2 and retry.
+
+And above all make sure to use the right serial port.
