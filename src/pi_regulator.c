@@ -7,7 +7,6 @@
 
 #include "pi_regulator.h"
 #include "main.h"
-#include "process_image.h"
 
 static bool enabled_motors = false;
 
@@ -56,6 +55,7 @@ static THD_FUNCTION(PiRegulator, arg) {
     while(1){
         time = chVTGetSystemTime();
         
+		/*
         //computes the speed to give to the motors
         //distance_cm is modified by the image processing thread
         speed = pi_regulator(get_distance_cm(), GOAL_DISTANCE);
@@ -77,7 +77,7 @@ static THD_FUNCTION(PiRegulator, arg) {
 			right_motor_set_speed(0);
 			left_motor_set_speed(0);
 		}
-
+		*/
         //100Hz
         chThdSleepUntilWindowed(time, time + MS2ST(10));
     }
