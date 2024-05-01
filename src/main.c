@@ -15,6 +15,15 @@
 
 #include "main.h"
 #include "pi_regulator.h"
+#include "ir_module.h"  
+#include "imu_module.h"
+#include "motor_module.h"
+#include "navigation_module.h"
+
+// Global declaration of the message bus
+messagebus_t bus;
+MUTEX_DECL(bus_lock);
+CONDVAR_DECL(bus_condvar);
 
 void SendUint8ToComputer(uint8_t* data, uint16_t size) 
 {
@@ -56,6 +65,14 @@ int main(void)
 
 	//stars the threads for the pi regulator
 	pi_regulator_start();
+
+	//initialize the message bus
+    messagebus_init(&bus, &bus_lock, &bus_condvar);
+
+    //initialize modules
+    ir_module_init();  //initialize the IR sensor module
+    imu_module_init();  //initialize the IMU module
+	navigation_module_init(); //initialize navigation module
 
     /* Infinite loop */
     while (1) {
