@@ -37,7 +37,7 @@ static THD_FUNCTION(IMUThread, arg) {
             messagebus_topic_publish(&imu_orientation_topic, &orientation, sizeof(orientation));
             start_function = false;
         }
-        chThdSleepMilliseconds(100);
+        // Gives back hand to the Round Robin thread (-> Navigation thread where left off)
     }
 }
 
@@ -49,7 +49,7 @@ void imu_module_init(void) {
 
 // Function that starts the thread
 void imu_module_start(void) {
-    chThdCreateStatic(waIMUThread, sizeof(waIMUThread), NORMALPRIO, IMUThread, NULL);
+    chThdCreateStatic(waIMUThread, sizeof(waIMUThread), NORMALPRIO+2, IMUThread, NULL);
 }
 
 // Function to detect gravity orientation and turn the right LED on

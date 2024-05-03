@@ -55,19 +55,19 @@ int main(void)
     // INITIALIZE ALL MODULES: to create all topics
     ir_module_init();
 	navigation_module_init();
-	imu_module_init();
 	motor_controller_init();
+	imu_module_init();
 
 	// START ALL THREADS MODULES: to launch the different threads
 	ir_module_start();
 	navigation_module_start();
-	imu_module_start();
 	motor_controller_start();
+	imu_module_start();
+	
 
     // INFINITE LOOP MAIN //
-    while (1) {
-    	//waits 0.2 second
-		chThdSleepMilliseconds(200);
+    while (true) {
+    	// NOTHING TO DO: already gave hand to Round Robin
     }
 }
 

@@ -34,7 +34,7 @@ static THD_FUNCTION(IRSensorThread, arg) {
         messagebus_topic_publish(&ir_right_obstacle_topic, &right_value, sizeof(right_value));
         messagebus_topic_publish(&ir_left_obstacle_topic, &left_value, sizeof(left_value));
         
-        chThdSleepMilliseconds(100);  // Sensor polling rate
+        chThdYield();  // Gives hand to next thread in Round Robin (-> Navigation Thread)
     }
 }
 
@@ -55,5 +55,5 @@ void ir_module_init(void) {
 
 // Function that starts the thread
 void ir_module_start(void) {
-    chThdCreateStatic(waIRSensorThread, sizeof(waIRSensorThread), NORMALPRIO, IRSensorThread, NULL);
+    chThdCreateStatic(waIRSensorThread, sizeof(waIRSensorThread), NORMALPRIO+1, IRSensorThread, NULL);
 }

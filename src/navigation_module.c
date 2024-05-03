@@ -7,13 +7,9 @@
 
 // Initialize message bus topics
 extern messagebus_t bus;
-messagebus_topic_t motor_direction_imu, motor_correction_ir, imu_wake_up;
-static MUTEX_DECL(motor_direction_imu_lock);
+messagebus_topic_t motor_correction_ir;
 static MUTEX_DECL(motor_correction_ir_lock);
-static MUTEX_DECL(imu_wake_up_lock);
-static CONDVAR_DECL(motor_direction_imu_condvar);
 static CONDVAR_DECL(motor_correction_ir_condvar);
-static CONDVAR_DECL(imu_wake_up_condvar);
 
 
 // Navigation module thread: receive IR data, control motors, receive IMU data
@@ -22,15 +18,13 @@ static THD_FUNCTION(NavigationThread, arg) {
     (void)arg;
     chRegSetThreadName("Navigation");
     
-    uint16_t front_obstacle_distance, right_obstacle_distance, left_obstacle_distance, turn_direction_imu, stop_motor_ir;
+    uint16_t front_obstacle_distance, right_obstacle_distance, left_obstacle_distance, stop_motor_ir;
     bool ir_alert_distance = false;
-    bool imu_wake_up_signal = true;
 
     // Find message bus topics
     messagebus_topic_t *front_topic = messagebus_find_topic_blocking(&bus, "/ir_front_obstacle");
     messagebus_topic_t *right_topic = messagebus_find_topic_blocking(&bus, "/ir_right_obstacle");
     messagebus_topic_t *left_topic = messagebus_find_topic_blocking(&bus, "/ir_left_obstacle");
-    messagebus_topic_t *imu_topic = messagebus_find_topic_blocking(&bus, "/imu_orientation");
 
     while (true) {
 
@@ -45,33 +39,22 @@ static THD_FUNCTION(NavigationThread, arg) {
             // STOP MOTORS: send to motor controller module the stop command
             stop_motor_ir = STOP_MOTOR;
             messagebus_topic_publish(&motor_correction_ir, &stop_motor_ir, sizeof(stop_motor_ir));
-            // START: IMU FUNCTION
-            messagebus_topic_publish(&imu_wake_up, &imu_wake_up_signal, sizeof(imu_wake_up_signal));
-            messagebus_topic_wait(imu_topic, &turn_direction_imu, sizeof(turn_direction_imu));
-            // SEND: motor module the turn direction
-            messagebus_topic_publish(&motor_direction_imu, &turn_direction_imu, sizeof(turn_direction_imu));
         }
-        chThdSleepMilliseconds(100);  // Sleep thread
+        chThdYield();  // Gives hand to next thread in Round Robin (-> Motor Thread)
     }
 }
 
 // Function to initialise thread and created topics
 void navigation_module_init(void) {
 
-    messagebus_topic_init(&motor_direction_imu, &motor_direction_imu_lock, &motor_direction_imu_condvar, NULL, 0);
-    messagebus_advertise_topic(&bus, &motor_direction_imu, "/motor_direction_imu");
-
     messagebus_topic_init(&motor_correction_ir, &motor_correction_ir_lock, &motor_correction_ir_condvar, NULL, 0);
     messagebus_advertise_topic(&bus, &motor_correction_ir, "/motor_correction_ir");
-
-    messagebus_topic_init(&imu_wake_up, &imu_wake_up_lock, &imu_wake_up_condvar, NULL, 0);
-    messagebus_advertise_topic(&bus, &imu_wake_up, "/imu_wake_up");
 
 }
 
 // Function that starts the thread
 void navigation_module_start(void) {
-    chThdCreateStatic(waNavigationThread, sizeof(waNavigationThread), NORMALPRIO, NavigationThread, NULL);
+    chThdCreateStatic(waNavigationThread, sizeof(waNavigationThread), NORMALPRIO+1, NavigationThread, NULL);
 }
 
 // Function to analyse and process IR values

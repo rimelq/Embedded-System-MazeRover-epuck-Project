@@ -11,6 +11,9 @@
 
 // Initialize message bus topics
 extern messagebus_t bus;
+messagebus_topic_t imu_wake_up;
+static MUTEX_DECL(imu_wake_up_lock);
+static CONDVAR_DECL(imu_wake_up_condvar);
 
 // Thread for the motor controller module
 static THD_WORKING_AREA(waMotorsModule, 256);
@@ -20,15 +23,16 @@ static THD_FUNCTION(MotorsModule, arg) {
     (void)arg;
 
     // Find message bus topics
-    messagebus_topic_t *direction_topic = messagebus_find_topic_blocking(&bus, "/motor_direction_imu");
     messagebus_topic_t *correction_topic = messagebus_find_topic_blocking(&bus, "/motor_correction_ir");
+    messagebus_topic_t *imu_topic = messagebus_find_topic_blocking(&bus, "/imu_orientation");
 
-    uint16_t motor_navigation_correction, motor_turn_direction;
+    uint16_t motor_navigation_correction, turn_direction_imu;
     int16_t speed_right = 0;
     int16_t speed_left = 0;
+    bool imu_wake_up_signal = true;
 
 
-    while(1){
+    while(true){
 
         // Wait for navigation module command
         messagebus_topic_wait(correction_topic, &motor_navigation_correction, sizeof(motor_navigation_correction));
@@ -44,11 +48,12 @@ static THD_FUNCTION(MotorsModule, arg) {
                 speed_left = 0;
                 motors_speed_update(speed_right, speed_left);
                 // Wait for navigation turn direction command coming from IMU data
-                messagebus_topic_wait(direction_topic, &motor_turn_direction, sizeof(motor_turn_direction));
-                if (motor_turn_direction == RIGHT_TURN) {
+                messagebus_topic_publish(&imu_wake_up, &imu_wake_up_signal, sizeof(imu_wake_up_signal));
+                messagebus_topic_wait(imu_topic, &turn_direction_imu, sizeof(turn_direction_imu));
+                if (turn_direction_imu == RIGHT_TURN) {
                     motor_controller_turn_90_deg(RIGHT_TURN);  // turn 90deg to the right
                 }
-                else if (motor_turn_direction == LEFT_TURN) {
+                else if (turn_direction_imu == LEFT_TURN) {
                     motor_controller_turn_90_deg(LEFT_TURN);  // turn 90deg to the left
                 }
                 break;
@@ -63,18 +68,21 @@ static THD_FUNCTION(MotorsModule, arg) {
             default:
                 break;
         }
-        chThdSleepMilliseconds(100);  // Sleep thread
+        chThdYield();  // Gives hand to next thread in Round Robin (-> IR Thread)
     }
 }
 
 // Function that initialized the motor controller module
 void motor_controller_init(void) {
     motors_init();
+
+    messagebus_topic_init(&imu_wake_up, &imu_wake_up_lock, &imu_wake_up_condvar, NULL, 0);
+    messagebus_advertise_topic(&bus, &imu_wake_up, "/imu_wake_up");
 }
 
 // Function that starts the thread
 void motor_controller_start(void) {
-    chThdCreateStatic(waMotorsModule, sizeof(waMotorsModule), NORMALPRIO, MotorsModule, NULL);
+    chThdCreateStatic(waMotorsModule, sizeof(waMotorsModule), NORMALPRIO+1, MotorsModule, NULL);
 }
 
 // Function that updates the speed of each motor
