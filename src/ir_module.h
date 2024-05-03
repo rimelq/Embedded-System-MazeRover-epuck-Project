@@ -6,5 +6,6 @@
 #define LEFT_SENSOR_CHANNEL 5   // Example channel number for left sensor
 
 void ir_module_init(void);
+void ir_module_start(void);
 
 #endif /* IR_MODULE_H */

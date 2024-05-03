@@ -10,6 +10,7 @@
 
 // functions definitions
 void imu_module_init(void);
+void imu_module_start(void);
 bool show_gravity(imu_msg_t *imu_values);
 
 #endif

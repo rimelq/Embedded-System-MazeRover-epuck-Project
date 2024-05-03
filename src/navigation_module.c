@@ -57,7 +57,6 @@ static THD_FUNCTION(NavigationThread, arg) {
 
 // Function to initialise thread and created topics
 void navigation_module_init(void) {
-    chThdCreateStatic(waNavigationThread, sizeof(waNavigationThread), NORMALPRIO, NavigationThread, NULL);
 
     messagebus_topic_init(&motor_direction_imu, &motor_direction_imu_lock, &motor_direction_imu_condvar, NULL, 0);
     messagebus_advertise_topic(&bus, &motor_direction_imu, "/motor_direction_imu");
@@ -68,6 +67,11 @@ void navigation_module_init(void) {
     messagebus_topic_init(&imu_wake_up, &imu_wake_up_lock, &imu_wake_up_condvar, NULL, 0);
     messagebus_advertise_topic(&bus, &imu_wake_up, "/imu_wake_up");
 
+}
+
+// Function that starts the thread
+void navigation_module_start(void) {
+    chThdCreateStatic(waNavigationThread, sizeof(waNavigationThread), NORMALPRIO, NavigationThread, NULL);
 }
 
 // Function to analyse and process IR values

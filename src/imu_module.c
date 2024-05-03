@@ -43,9 +43,13 @@ static THD_FUNCTION(IMUThread, arg) {
 
 // Function to initialise thread and created topics
 void imu_module_init(void) {
-    chThdCreateStatic(waIMUThread, sizeof(waIMUThread), NORMALPRIO, IMUThread, NULL);
     messagebus_topic_init(&imu_orientation_topic, &imu_orientation_topic_lock, &imu_orientation_topic_condvar, NULL, 0);
     messagebus_advertise_topic(&bus, &imu_orientation_topic, "/imu_orientation");
+}
+
+// Function that starts the thread
+void imu_module_start(void) {
+    chThdCreateStatic(waIMUThread, sizeof(waIMUThread), NORMALPRIO, IMUThread, NULL);
 }
 
 // Function to detect gravity orientation and turn the right LED on

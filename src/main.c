@@ -9,12 +9,9 @@
 #include <motors.h>
 #include <chprintf.h>
 
-// In order to be able to use the RGB LEDs and User button
-// These funtcions are handled by the ESP32 and the communication with the uC is done via SPI
 #include <spi_comm.h>
 
 #include "main.h"
-#include "pi_regulator.h"
 #include "ir_module.h"  
 #include "imu_module.h"
 #include "motor_module.h"
@@ -46,35 +43,28 @@ static void serial_start(void)
 
 int main(void)
 {
+	// START NECESSARY DEPENDENCIES AND THREADS
     halInit();
     chSysInit();
     mpu_init();
+    serial_start();  //starts the serial communication
+    usb_start();  //start the USB communication
+	spi_comm_start();  //starts RGB LEDS and User button managment
+    messagebus_init(&bus, &bus_lock, &bus_condvar);  //initialize the message bus
 
-    //starts the serial communication
-    serial_start();
-    //start the USB communication
-    usb_start();
-	//inits the motors
-	motors_init();
+    // INITIALIZE ALL MODULES: to create all topics
+    ir_module_init();
+	navigation_module_init();
+	imu_module_init();
+	motor_controller_init();
 
-	//starts RGB LEDS and User button managment
-	spi_comm_start();
+	// START ALL THREADS MODULES: to launch the different threads
+	ir_module_start();
+	navigation_module_start();
+	imu_module_start();
+	motor_controller_start();
 
-	//enable motors by default. Can be chnaged from plotImage Python code
-	set_enabled_motors(true);
-
-	//stars the threads for the pi regulator
-	pi_regulator_start();
-
-	//initialize the message bus
-    messagebus_init(&bus, &bus_lock, &bus_condvar);
-
-    //initialize modules
-    ir_module_init();  //initialize the IR sensor module
-    imu_module_init();  //initialize the IMU module
-	navigation_module_init(); //initialize navigation module
-
-    /* Infinite loop */
+    // INFINITE LOOP MAIN //
     while (1) {
     	//waits 0.2 second
 		chThdSleepMilliseconds(200);

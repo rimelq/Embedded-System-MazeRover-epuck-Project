@@ -70,6 +70,10 @@ static THD_FUNCTION(MotorsModule, arg) {
 // Function that initialized the motor controller module
 void motor_controller_init(void) {
     motors_init();
+}
+
+// Function that starts the thread
+void motor_controller_start(void) {
     chThdCreateStatic(waMotorsModule, sizeof(waMotorsModule), NORMALPRIO, MotorsModule, NULL);
 }
 

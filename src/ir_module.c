@@ -25,9 +25,9 @@ static THD_FUNCTION(IRSensorThread, arg) {
 
     while (true) {
         // Fetch data using the proximity API
-        front_value = get_proximity(FRONT_SENSOR_CHANNEL);
-        right_value = get_proximity(RIGHT_SENSOR_CHANNEL);
-        left_value = get_proximity(LEFT_SENSOR_CHANNEL);
+        front_value = get_prox(FRONT_SENSOR_CHANNEL);
+        right_value = get_prox(RIGHT_SENSOR_CHANNEL);
+        left_value = get_prox(LEFT_SENSOR_CHANNEL);
 
         // Send the IR values on topic message bus
         messagebus_topic_publish(&ir_front_obstacle_topic, &front_value, sizeof(front_value));
@@ -42,8 +42,6 @@ static THD_FUNCTION(IRSensorThread, arg) {
 // Function to start IR module
 void ir_module_init(void) {
 
-    chThdCreateStatic(waIRSensorThread, sizeof(waIRSensorThread), NORMALPRIO, IRSensorThread, NULL);
-
     messagebus_topic_init(&ir_front_obstacle_topic, &ir_front_obstacle_topic_lock, &ir_front_obstacle_topic_condvar, NULL, 0);
     messagebus_advertise_topic(&bus, &ir_front_obstacle_topic, "/ir_front_obstacle");
 
@@ -53,4 +51,9 @@ void ir_module_init(void) {
     messagebus_topic_init(&ir_left_obstacle_topic, &ir_left_obstacle_topic_lock, &ir_left_obstacle_topic_condvar, NULL, 0);
     messagebus_advertise_topic(&bus, &ir_left_obstacle_topic, "/ir_left_obstacle");
 
+}
+
+// Function that starts the thread
+void ir_module_start(void) {
+    chThdCreateStatic(waIRSensorThread, sizeof(waIRSensorThread), NORMALPRIO, IRSensorThread, NULL);
 }

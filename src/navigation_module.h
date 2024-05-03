@@ -11,6 +11,7 @@
 #define STOP_MOTOR 2
 
 void navigation_module_init(void);
+void navigation_module_start(void);
 bool ir_process_data(uint16_t front, uint16_t right, uint16_t left);
 
 #endif // NAVIGATION_MODULE_H
