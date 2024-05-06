@@ -10,6 +10,7 @@
     "files.associations": {
         "dcmi_camera.h": "c",
         "parameter.h": "c",
-        "messagebus.h": "c"
+        "messagebus.h": "c",
+        "proximity.h": "c"
     },
 }

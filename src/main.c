@@ -8,7 +8,6 @@
 #include <usbcfg.h>
 #include <motors.h>
 #include <chprintf.h>
-
 #include <spi_comm.h>
 
 #include "main.h"
@@ -21,6 +20,7 @@
 messagebus_t bus;
 MUTEX_DECL(bus_lock);
 CONDVAR_DECL(bus_condvar);
+
 
 void SendUint8ToComputer(uint8_t* data, uint16_t size) 
 {
@@ -47,27 +47,34 @@ int main(void)
     halInit();
     chSysInit();
     mpu_init();
+	messagebus_init(&bus, &bus_lock, &bus_condvar);  //initialize the message bus
     serial_start();  //starts the serial communication
     usb_start();  //start the USB communication
 	spi_comm_start();  //starts RGB LEDS and User button managment
-    messagebus_init(&bus, &bus_lock, &bus_condvar);  //initialize the message bus
+	i2c_start();
+    
 
     // INITIALIZE ALL MODULES: to create all topics
-    ir_module_init();
-	navigation_module_init();
-	motor_controller_init();
-	imu_module_init();
+    //ir_module_init();
+	//navigation_module_init();
+	//motor_controller_init();
+	//imu_module_init();
+	motors_init();
+    //imu_start();
+	proximity_start();
 
 	// START ALL THREADS MODULES: to launch the different threads
 	ir_module_start();
-	navigation_module_start();
+	//navigation_module_start();
 	motor_controller_start();
-	imu_module_start();
-	
+	//imu_module_start();
 
+	
     // INFINITE LOOP MAIN //
     while (true) {
     	// NOTHING TO DO: already gave hand to Round Robin
+		
+		chThdSleepMilliseconds(200);
     }
 }
 
