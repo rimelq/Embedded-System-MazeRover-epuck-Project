@@ -3,24 +3,12 @@
 #include <msgbus/messagebus.h>
 #include <sensors/proximity.h>
 #include <stdlib.h>
+
 #include "ir_module.h"
 
 // Initialize message bus topics
 extern messagebus_t bus;
-// messagebus_topic_t ir_front_obstacle_topic, ir_right_obstacle_topic, ir_left_obstacle_topic;
-// static MUTEX_DECL(ir_front_obstacle_topic_lock);
-// static MUTEX_DECL(ir_right_obstacle_topic_lock);
-// static MUTEX_DECL(ir_left_obstacle_topic_lock);
-// static CONDVAR_DECL(ir_front_obstacle_topic_condvar);
-// static CONDVAR_DECL(ir_right_obstacle_topic_condvar);
-// static CONDVAR_DECL(ir_left_obstacle_topic_condvar);
 static uint8_t ir_message;
-
-
-// Declares the topic on the bus.
-// messagebus_topic_t ir_to_motor_topic;
-// MUTEX_DECL(ir_to_motor_topic_lock);
-// CONDVAR_DECL(ir_to_motor_topic_condvar);
 
 
 // IR module thread: read and send IR data constantly on topic message bus
@@ -33,9 +21,6 @@ static THD_FUNCTION(IRSensorThread, arg) {
     uint16_t front_value, right_value, left_value;
     messagebus_topic_t *proximity_topic = messagebus_find_topic_blocking(&bus, "/proximity");
     proximity_msg_t prox_values;
-
-    // messagebus_topic_init(&ir_to_motor_topic, &ir_to_motor_topic_lock, &ir_to_motor_topic_condvar, &ir_message, sizeof(ir_message));
-    // messagebus_advertise_topic(&bus, &ir_to_motor_topic, "/irTOmotor");
     
 
     while (true) {
@@ -50,7 +35,6 @@ static THD_FUNCTION(IRSensorThread, arg) {
         if (front_value > OBSTACLE_DISTANCE) {
             led1 = 1;
             ir_message = STOP_MOTOR;  // stop both motors
-            // messagebus_topic_publish(&ir_to_motor_topic, &ir_message, sizeof(ir_message));
         }
         else if (abs(right_value - left_value) >= CRUISING_DIFFERENCE_THRESHOLD) {  // case: too much difference
             if (right_value > left_value) {
@@ -64,46 +48,30 @@ static THD_FUNCTION(IRSensorThread, arg) {
         }
         else {
             ir_message = CRUISE;  // increase left motor speed
-            // messagebus_topic_publish(&ir_to_motor_topic, &ir_message, sizeof(ir_message));
         }
         chSysUnlock();
-
-        // Send the IR values on topic message bus
-        // messagebus_topic_publish(&ir_front_obstacle_topic, &front_value, sizeof(front_value));
-        // messagebus_topic_publish(&ir_right_obstacle_topic, &right_value, sizeof(right_value));
-        // messagebus_topic_publish(&ir_left_obstacle_topic, &left_value, sizeof(left_value));
         
-        //chThdYield();  // Gives hand to next thread in Round Robin (-> Navigation Thread)
         //we invert the values because a led is turned on if the signal is low
         palWritePad(GPIOD, GPIOD_LED3, led3 ? 0 : 1);
         palWritePad(GPIOD, GPIOD_LED7, led7 ? 0 : 1);
         palWritePad(GPIOD, GPIOD_LED1, led1 ? 0 : 1);
-        chThdSleepMilliseconds(100);
+
+        chThdSleepMilliseconds(100);  // sleep to give hand to other module
     }
 }
 
 
 // Function to start IR module
 void ir_module_init(void) {
-
-    // messagebus_topic_init(&ir_front_obstacle_topic, &ir_front_obstacle_topic_lock, &ir_front_obstacle_topic_condvar, NULL, 0);
-    // messagebus_advertise_topic(&bus, &ir_front_obstacle_topic, "/ir_front_obstacle");
-
-    // messagebus_topic_init(&ir_right_obstacle_topic, &ir_right_obstacle_topic_lock, &ir_right_obstacle_topic_condvar, NULL, 0);
-    // messagebus_advertise_topic(&bus, &ir_right_obstacle_topic, "/ir_right_obstacle");
-
-    // messagebus_topic_init(&ir_left_obstacle_topic, &ir_left_obstacle_topic_lock, &ir_left_obstacle_topic_condvar, NULL, 0);
-    // messagebus_advertise_topic(&bus, &ir_left_obstacle_topic, "/ir_left_obstacle");
-
+    // NOTHING ?
 }
 
 // Function that starts the thread
 void ir_module_start(void) {
-    //calibrate_ir();
-    //proximity_start();
     chThdCreateStatic(waIRSensorThread, sizeof(waIRSensorThread), NORMALPRIO+1, IRSensorThread, NULL);
 }
 
+// Function that sends the ir command to motor controller module
 uint8_t get_ir_message(void) {
     return ir_message;
 }

@@ -12,9 +12,6 @@
 
 // Initialize message bus topics
 extern messagebus_t bus;
-// messagebus_topic_t imu_wake_up;
-// static MUTEX_DECL(imu_wake_up_lock);
-// static CONDVAR_DECL(imu_wake_up_condvar);
 
 
 // Thread for the motor controller module
@@ -24,25 +21,15 @@ static THD_FUNCTION(MotorsModule, arg) {
     chRegSetThreadName("MotorController");
     (void)arg;
 
-    // Find message bus topics
-    // messagebus_topic_t *correction_topic = messagebus_find_topic_blocking(&bus, "/motor_correction_ir");
-    // messagebus_topic_t *imu_topic = messagebus_find_topic_blocking(&bus, "/imu_orientation");
-    // messagebus_topic_t *ir_command_topic = messagebus_find_topic_blocking(&bus, "/irTOmotor");
+    // create static variables for the thread
     static uint8_t ir_command;
-
-    uint16_t motor_navigation_correction, turn_direction_imu;
     static int16_t speed_right = 0;
     static int16_t speed_left = 0;
-    bool imu_wake_up_signal = true;
 
+    uint16_t turn_direction_imu;
 
     while(true){
 
-        // Wait for navigation module command
-        //messagebus_topic_wait(correction_topic, &motor_navigation_correction, sizeof(motor_navigation_correction));
-
-        // wait for the proximity topic to send measures
-        // messagebus_topic_wait(ir_command_topic, &ir_command, sizeof(ir_command));
         ir_command = get_ir_message();
 
         //chSysLock();
@@ -72,56 +59,13 @@ static THD_FUNCTION(MotorsModule, arg) {
                 break;
         }
         //chSysUnlock();
-        chThdSleepMilliseconds(100);
-        // Put the robot into cruising (normal) mode forward
-        // speed_right = MOTOR_CRUISING_SPEED;
-        // speed_left = MOTOR_CRUISING_SPEED;
-        // motors_speed_update(speed_right, speed_left);
-
-        // chThdSleepMilliseconds(2000);
-
-        // speed_right = 0;
-        // speed_left = 0;
-        // motors_speed_update(speed_right, speed_left);
-
-        // chThdSleepMilliseconds(500);
-
-        // switch(motor_navigation_correction) {
-        //     case STOP_MOTOR:
-        //         speed_right = 0;
-        //         speed_left = 0;
-        //         motors_speed_update(speed_right, speed_left);
-        //         // Wait for navigation turn direction command coming from IMU data
-        //         messagebus_topic_publish(&imu_wake_up, &imu_wake_up_signal, sizeof(imu_wake_up_signal));
-        //         messagebus_topic_wait(imu_topic, &turn_direction_imu, sizeof(turn_direction_imu));
-        //         if (turn_direction_imu == RIGHT_TURN) {
-        //             motor_controller_turn_90_deg(RIGHT_TURN);  // turn 90deg to the right
-        //         }
-        //         else if (turn_direction_imu == LEFT_TURN) {
-        //             motor_controller_turn_90_deg(LEFT_TURN);  // turn 90deg to the left
-        //         }
-        //         break;
-        //     case RIGHT_CORRECTION:
-        //         speed_right = motor_speed_increment(speed_right);
-        //         motors_speed_update(speed_right, speed_left);
-        //         break;
-        //     case LEFT_CORRECTION:
-        //         speed_left = motor_speed_increment(speed_left);
-        //         motors_speed_update(speed_right, speed_left);
-        //         break;
-        //     default:
-        //         break;
-        // }
-        //chThdYield();  // Gives hand to next thread in Round Robin (-> IR Thread)
+        chThdSleepMilliseconds(100);  // sleep to give hand to other module
     }
 }
 
 // Function that initialized the motor controller module
 void motor_controller_init(void) {
-    //motors_init();
-
-    // messagebus_topic_init(&imu_wake_up, &imu_wake_up_lock, &imu_wake_up_condvar, NULL, 0);
-    // messagebus_advertise_topic(&bus, &imu_wake_up, "/imu_wake_up");
+    // NOTHING ?
 }
 
 // Function that starts the thread

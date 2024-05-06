@@ -8,12 +8,12 @@
 #define RIGHT_TURN 0
 #define LEFT_TURN 1
 
+// Variables for navigation IR/MOTORS
 #define SPEED_INCREMENT 70
 #define MOTOR_SPEED_LIMIT 1100
 #define MOTOR_CRUISING_SPEED 500
 #define DETLA_LIMIT 200
 #define TURNING_TIME_90DEG 600
-
 
 // motor controller functions
 void motor_controller_init(void);

@@ -54,7 +54,7 @@ int main(void)
 	i2c_start();
     
 
-    // INITIALIZE ALL MODULES: to create all topics
+    // INITIALIZE ALL MODULES
     //ir_module_init();
 	//navigation_module_init();
 	//motor_controller_init();
