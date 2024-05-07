@@ -1,19 +1,18 @@
 #include "ch.h"
 #include "hal.h"
 #include <msgbus/messagebus.h>
-#include <sensors/imu.h>
+
 #include "imu_module.h"
-#include "i2c_bus.h"
+#include "motor_module.h"
 
 
-// Initialize message bus topics
+// Initialize message bus topics and static variables
 extern messagebus_t bus;
-// messagebus_topic_t imu_orientation_topic;
-// static MUTEX_DECL(imu_orientation_topic_lock);
-// static CONDVAR_DECL(imu_orientation_topic_condvar);
+static uint8_t orientation = NO_TILT;
+static bool start_function = DISABLE_IMU;
 
 
-// IMU module thread: detect maze orientation, turn correct LED, send orientation to navigation module
+// IMU module thread: get maze tilt direction when needed, send result to motor controller thread
 static THD_WORKING_AREA(waIMUThread, 256);
 static THD_FUNCTION(IMUThread, arg) {
     (void)arg;
@@ -21,39 +20,31 @@ static THD_FUNCTION(IMUThread, arg) {
 
     messagebus_topic_t *imu_topic = messagebus_find_topic_blocking(&bus, "/imu");
     imu_msg_t imu_values;
-    bool orientation, start_function; 
 
-    // Find message bus topics
-    // messagebus_topic_t *wakeup = messagebus_find_topic_blocking(&bus, "/imu_wake_up");
-    //imu_compute_offset(imu_topic, 200);
 
     while (true) {
+
+        uint8_t temp = NO_TILT;  // temporary variable to get/check the tilt direction before sending to motor thread
+
+        // check if IMU function should start
+        start_function = get_start_imu();
         
-        //wait for new measures to be published
-        messagebus_topic_wait(imu_topic, &imu_values, sizeof(imu_values));
-
-        // WAIT FOR WAKE UP SIGNAL FROM NAVIGATION MODULE
-        //messagebus_topic_wait(wakeup, &start_function, sizeof(start_function));
-        // if (start_function) {
-            // Measure tilt with IMU, turn on the LED, get new robot direction
-            // orientation = show_gravity(&imu_values);
-            // chThdSleepMilliseconds(100);
-        orientation = show_gravity(&imu_values);
-        chThdSleepMilliseconds(100);
-
-            // publish new orientation to topic for navigation module
-            // messagebus_topic_publish(&imu_orientation_topic, &orientation, sizeof(orientation));
-            // start_function = false;
-        //}
-        // Gives back hand to the Round Robin thread (-> Navigation thread where left off)
+        if (start_function == ENABLE_IMU) {  // case: motor thread activated IMU function
+        
+            messagebus_topic_wait(imu_topic, &imu_values, sizeof(imu_values));  // get IMU measured value
+            temp = show_gravity(&imu_values);
+            if ((temp == RIGHT_TILT) || (temp == LEFT_TILT)) {
+                orientation = temp;  // write onto static variable for motor thread get call function
+            }
+        }
+        else if (start_function == DISABLE_IMU) {  // case: motor thread deactivated IMU
+            orientation = NO_TILT;  // reset static variable for future event
+        }
+        
+        chThdSleepMilliseconds(50);  // sleep to give hand to other module
     }
 }
 
-// Function to initialise thread and created topics
-void imu_module_init(void) {
-    // messagebus_topic_init(&imu_orientation_topic, &imu_orientation_topic_lock, &imu_orientation_topic_condvar, NULL, 0);
-    // messagebus_advertise_topic(&bus, &imu_orientation_topic, "/imu_orientation");
-}
 
 // Function that starts the thread
 void imu_module_start(void) {
@@ -61,26 +52,38 @@ void imu_module_start(void) {
 }
 
 // Function to detect gravity orientation and turn the right LED on
-bool show_gravity(imu_msg_t *imu_values){
+uint8_t show_gravity(imu_msg_t *imu_values){
 
     uint8_t led3 = 0, led7 = 0;
-    bool calculated_orientation = true;
+    uint8_t calculated_orientation = NO_TILT;
     float threshold = 3.0;
     float *accel = imu_values->acceleration;  //create a pointer to the array for shorter name
 
     chSysLock();
 
     //we find which led of each axis should be turned on
-    if(accel[X_AXIS] > threshold)
+    if(accel[X_AXIS] > threshold) {  // case: tilted to the Left
         led7 = 1;
-    else if(accel[X_AXIS] < -threshold)
+        calculated_orientation = LEFT_TILT;
+    }
+    else if(accel[X_AXIS] < -threshold) {  // case: tilted to the Right
         led3 = 1;
+        calculated_orientation = RIGHT_TILT;
+    }
+    else {  // case: no tilt detected
+        calculated_orientation = NO_TILT;
+    }
 
     chSysUnlock();
 
-    //we invert the values because a led is turned on if the signal is low
+    //Turn ON Leds: we invert the values because a led is turned on if the signal is low
     palWritePad(GPIOD, GPIOD_LED3, led3 ? 0 : 1);
     palWritePad(GPIOD, GPIOD_LED7, led7 ? 0 : 1);
 
     return calculated_orientation;
+}
+
+// Function that sends the orientation to the Motor thread
+uint8_t get_orientation_motor(void) {
+    return orientation;
 }

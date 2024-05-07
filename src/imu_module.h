@@ -3,14 +3,14 @@
 
 #include <sensors/imu.h>
 
-// Useful variables
-#define RIGHT_TURN 0
-#define LEFT_TURN 1
-#define GRAVITY_THRESHOLD 0.2f  //threshold value regulate horizontal variation noise
+// Variable for tilting direction IMU
+#define LEFT_TILT 0
+#define RIGHT_TILT 1
+#define NO_TILT 2
 
-// functions definitions
-void imu_module_init(void);
+// IMU function declaration
 void imu_module_start(void);
-bool show_gravity(imu_msg_t *imu_values);
+uint8_t show_gravity(imu_msg_t *imu_values);
+uint8_t get_orientation_motor(void);
 
 #endif

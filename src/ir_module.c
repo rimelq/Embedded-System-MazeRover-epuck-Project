@@ -1,23 +1,22 @@
 #include "ch.h"
 #include "hal.h"
 #include <msgbus/messagebus.h>
-#include <sensors/proximity.h>
 #include <stdlib.h>
 
 #include "ir_module.h"
 
-// Initialize message bus topics
+// Initialize message bus topics and static variables
 extern messagebus_t bus;
-static uint8_t ir_message;
+static uint8_t ir_message = CRUISE;
 
 
-// IR module thread: read and send IR data constantly on topic message bus
+// IR module thread: read IR proximity measures and give command to motor thread
 static THD_WORKING_AREA(waIRSensorThread, 256);
 static THD_FUNCTION(IRSensorThread, arg) {
     (void)arg;
     chRegSetThreadName("IRSensorReading");
 
-    
+    // variables and messagebus declaration
     uint16_t front_value, right_value, left_value;
     messagebus_topic_t *proximity_topic = messagebus_find_topic_blocking(&bus, "/proximity");
     proximity_msg_t prox_values;
@@ -31,27 +30,28 @@ static THD_FUNCTION(IRSensorThread, arg) {
         front_value = get_prox(FRONT_SENSOR_CHANNEL);
         right_value = get_prox(RIGHT_SENSOR_CHANNEL);
         left_value = get_prox(LEFT_SENSOR_CHANNEL);
+
         chSysLock();
-        if (front_value > OBSTACLE_DISTANCE) {
+        if (front_value > OBSTACLE_DISTANCE) {  // case: detected an obstacle on the front
             led1 = 1;
             ir_message = STOP_MOTOR;  // stop both motors
         }
         else if (abs(right_value - left_value) >= CRUISING_DIFFERENCE_THRESHOLD) {  // case: too much difference
-            if (right_value > left_value) {
+            if (right_value > left_value) {  // case: closer to the Right
                 led3 = 1;
                 ir_message = RIGHT_MOTOR;  // increase right motor speed
             }
-            else if (right_value < left_value) {
+            else if (right_value < left_value) {  // case: closer to the Left
                 led7 = 1;
                 ir_message = LEFT_MOTOR;  // increase left motor speed
             }
         }
         else {
-            ir_message = CRUISE;  // increase left motor speed
+            ir_message = CRUISE;  // put robot in normal cruising mode
         }
         chSysUnlock();
         
-        //we invert the values because a led is turned on if the signal is low
+        // Turn ON Leds: we invert the values because a led is turned on if the signal is low
         palWritePad(GPIOD, GPIOD_LED3, led3 ? 0 : 1);
         palWritePad(GPIOD, GPIOD_LED7, led7 ? 0 : 1);
         palWritePad(GPIOD, GPIOD_LED1, led1 ? 0 : 1);
@@ -60,11 +60,6 @@ static THD_FUNCTION(IRSensorThread, arg) {
     }
 }
 
-
-// Function to start IR module
-void ir_module_init(void) {
-    // NOTHING ?
-}
 
 // Function that starts the thread
 void ir_module_start(void) {
