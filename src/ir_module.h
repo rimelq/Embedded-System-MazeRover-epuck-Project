@@ -14,8 +14,9 @@
 #define CRUISE 3
 
 // Variables for IR processing
-#define OBSTACLE_DISTANCE 450
-#define CRUISING_DIFFERENCE_THRESHOLD 30
+#define OBSTACLE_DISTANCE 600  // 600
+#define CRUISING_THRESHOLD_RIGHT 800  // 800
+#define CRUISING_THRESHOLD_LEFT 600  // 600
 
 // Functions declaration
 void ir_module_start(void);

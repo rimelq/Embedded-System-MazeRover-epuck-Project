@@ -71,7 +71,7 @@ static THD_FUNCTION(MotorsModule, arg) {
             imu_orientation = NO_TILT;  // reset the static variable for future event
         }
         
-        chThdSleepMilliseconds(100);  // sleep to give hand to other module
+        chThdSleepMilliseconds(50);  // sleep to give hand to other module
     }
 }
 
@@ -90,12 +90,12 @@ void motors_speed_update(int16_t right, int16_t left) {
 // Function that turns the robot 90 degrees in a certain direction (left/right)
 void motor_controller_turn_90_deg (uint8_t turn_direction) {
     if (turn_direction == RIGHT_TILT) {
-        right_motor_set_speed(-500);
-        left_motor_set_speed(500);
+        right_motor_set_speed(-MOTOR_CRUISING_SPEED);
+        left_motor_set_speed(MOTOR_CRUISING_SPEED);
     }
     else if (turn_direction == LEFT_TILT) {
-        right_motor_set_speed(500);
-        left_motor_set_speed(-500);
+        right_motor_set_speed(MOTOR_CRUISING_SPEED);
+        left_motor_set_speed(-MOTOR_CRUISING_SPEED);
     }
     chThdSleepMilliseconds(TURNING_TIME_90DEG);  // sleep duration to make the 90deg turn
     // Stop the motors
@@ -107,7 +107,7 @@ void motor_controller_turn_90_deg (uint8_t turn_direction) {
 int16_t motor_speed_increment(int16_t current_speed, int16_t other_motor_speed) {
     int16_t new_speed = current_speed + SPEED_INCREMENT;
     int16_t delta = new_speed - other_motor_speed;
-    if (delta >= DETLA_LIMIT) {  // to avoid too much difference in speed
+    if (delta > DETLA_LIMIT) {  // to avoid too much difference in speed
         new_speed = current_speed;
     }
     if (new_speed > MOTOR_SPEED_LIMIT) {  // never the case but just for protection

@@ -3,11 +3,11 @@
 
 
 // Variables for navigation IR/MOTORS
-#define SPEED_INCREMENT 70
+#define SPEED_INCREMENT 35  // 35
 #define MOTOR_SPEED_LIMIT 1100
-#define MOTOR_CRUISING_SPEED 500
-#define DETLA_LIMIT 200
-#define TURNING_TIME_90DEG 600
+#define MOTOR_CRUISING_SPEED 250  // 250
+#define DETLA_LIMIT 70  // 70
+#define TURNING_TIME_90DEG 1230  // 1230
 
 // Variables for starting the IMU thread function
 #define DISABLE_IMU false

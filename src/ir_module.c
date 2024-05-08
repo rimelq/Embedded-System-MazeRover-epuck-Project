@@ -36,15 +36,23 @@ static THD_FUNCTION(IRSensorThread, arg) {
             led1 = 1;
             ir_message = STOP_MOTOR;  // stop both motors
         }
-        else if (abs(right_value - left_value) >= CRUISING_DIFFERENCE_THRESHOLD) {  // case: too much difference
-            if (right_value > left_value) {  // case: closer to the Right
-                led3 = 1;
-                ir_message = RIGHT_MOTOR;  // increase right motor speed
-            }
-            else if (right_value < left_value) {  // case: closer to the Left
-                led7 = 1;
-                ir_message = LEFT_MOTOR;  // increase left motor speed
-            }
+        // else if ((abs(right_value - left_value) >= CRUISING_DIFFERENCE_THRESHOLD) && (abs(right_value - left_value) < CRUISING_DIFFERENCE_MAX)) {  // case: too much difference
+        //     if (right_value > left_value) {  // case: closer to the Right
+        //         led3 = 1;
+        //         ir_message = RIGHT_MOTOR;  // increase right motor speed
+        //     }
+        //     else if (right_value < left_value) {  // case: closer to the Left
+        //         led7 = 1;
+        //         ir_message = LEFT_MOTOR;  // increase left motor speed
+        //     }
+        // }
+        else if (right_value >= CRUISING_THRESHOLD_RIGHT) {  // case: closer to the Right
+            led3 = 1;
+            ir_message = RIGHT_MOTOR;  // increase right motor speed
+        }
+        else if (left_value >= CRUISING_THRESHOLD_LEFT) {  // case: closer to the Left
+            led7 = 1;
+            ir_message = LEFT_MOTOR;  // increase left motor speed
         }
         else {
             ir_message = CRUISE;  // put robot in normal cruising mode
@@ -56,7 +64,7 @@ static THD_FUNCTION(IRSensorThread, arg) {
         palWritePad(GPIOD, GPIOD_LED7, led7 ? 0 : 1);
         palWritePad(GPIOD, GPIOD_LED1, led1 ? 0 : 1);
 
-        chThdSleepMilliseconds(100);  // sleep to give hand to other module
+        chThdSleepMilliseconds(50);  // sleep to give hand to other module
     }
 }
 
