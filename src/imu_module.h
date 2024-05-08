@@ -1,7 +1,7 @@
 #ifndef IMU_MODULE_H
 #define IMU_MODULE_H
 
-#include <sensors/imu.h>
+#include <sensors/imu.h>  // include proximity module for all needed modules
 
 // Variable for tilting direction IMU
 #define LEFT_TILT 0

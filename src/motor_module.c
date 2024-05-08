@@ -1,15 +1,13 @@
 #include <ch.h>
 #include <hal.h>
 #include <motors.h>
-#include <msgbus/messagebus.h>
 
 #include "motor_module.h"
 #include "ir_module.h"
 #include "imu_module.h"
 
 
-// Initialize message bus topics and static variables
-extern messagebus_t bus;
+// Initialize static variables
 static bool start_imu = DISABLE_IMU;
 static uint8_t imu_orientation = NO_TILT;
 
@@ -34,23 +32,23 @@ static THD_FUNCTION(MotorsModule, arg) {
             ir_command = get_ir_message();  // get command to be executed from IR thread
 
             switch (ir_command) {
-                case STOP_MOTOR:
+                case STOP_MOTOR:  // case: stop motors and wait for IMU directives
                     speed_right = 0;
                     speed_left = 0;
                     motors_speed_update(speed_right, speed_left);
                     start_imu = ENABLE_IMU;
                     break;
-                case RIGHT_MOTOR:
+                case RIGHT_MOTOR:  // case: right motor correction
                     speed_left = MOTOR_CRUISING_SPEED;
                     speed_right = motor_speed_increment(speed_right, speed_left);
                     motors_speed_update(speed_right, speed_left);
                     break;
-                case LEFT_MOTOR:
+                case LEFT_MOTOR:  // case: left motor correction
                     speed_right = MOTOR_CRUISING_SPEED;
                     speed_left = motor_speed_increment(speed_left, speed_right);
                     motors_speed_update(speed_right, speed_left);
                     break;
-                case CRUISE:
+                case CRUISE:  // case: normal cruising mode
                     speed_right = MOTOR_CRUISING_SPEED;
                     speed_left = MOTOR_CRUISING_SPEED;
                     motors_speed_update(speed_right, speed_left);
@@ -107,7 +105,7 @@ void motor_controller_turn_90_deg (uint8_t turn_direction) {
 int16_t motor_speed_increment(int16_t current_speed, int16_t other_motor_speed) {
     int16_t new_speed = current_speed + SPEED_INCREMENT;
     int16_t delta = new_speed - other_motor_speed;
-    if (delta > DETLA_LIMIT) {  // to avoid too much difference in speed
+    if (delta > DELTA_LIMIT) {  // to avoid too much difference in speed
         new_speed = current_speed;
     }
     if (new_speed > MOTOR_SPEED_LIMIT) {  // never the case but just for protection

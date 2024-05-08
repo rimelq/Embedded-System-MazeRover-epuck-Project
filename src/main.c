@@ -25,12 +25,12 @@ int main(void)
 	messagebus_init(&bus, &bus_lock, &bus_condvar);  //initialize the message bus
 	i2c_start();
     
-    // INITIALIZE ALL MODULES
+    // INITIALIZE ALL LIBRARY MODULES
 	motors_init();
 	proximity_start();
 	imu_start();
 
-	// START ALL THREADS MODULES: to launch the different threads
+	// START ALL THREADS MODULES
 	ir_module_start();
 	motor_controller_start();
 	imu_module_start();

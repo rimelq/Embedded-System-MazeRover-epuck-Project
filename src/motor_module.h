@@ -6,8 +6,8 @@
 #define SPEED_INCREMENT 35  // 35
 #define MOTOR_SPEED_LIMIT 1100
 #define MOTOR_CRUISING_SPEED 250  // 250
-#define DETLA_LIMIT 70  // 70
-#define TURNING_TIME_90DEG 1190  // 1230 ou 1190 (works better)
+#define DELTA_LIMIT 70  // 70
+#define TURNING_TIME_90DEG 1210  // 1230 or 1190 (works better) or 1210 (works better+1)
 
 // Variables for starting the IMU thread function
 #define DISABLE_IMU false
