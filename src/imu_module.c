@@ -56,7 +56,7 @@ uint8_t show_gravity(imu_msg_t *imu_values){
 
     uint8_t led3 = 0, led7 = 0;
     uint8_t calculated_orientation = NO_TILT;
-    float threshold = 3.0;
+    float threshold = 2.0;  // initial value 3.0
     float *accel = imu_values->acceleration;  //create a pointer to the array for shorter name
 
     chSysLock();
