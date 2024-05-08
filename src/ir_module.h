@@ -14,7 +14,7 @@
 #define CRUISE 3
 
 // Variables for IR processing
-#define OBSTACLE_DISTANCE 600  // 600
+#define OBSTACLE_DISTANCE 400  // 600 ou 400 (works better for now)
 #define CRUISING_THRESHOLD_RIGHT 800  // 800
 #define CRUISING_THRESHOLD_LEFT 600  // 600
 
