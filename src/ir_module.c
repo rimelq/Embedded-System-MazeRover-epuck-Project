@@ -8,6 +8,7 @@
 // Initialize message bus topics and static variables
 extern messagebus_t bus;
 static uint8_t ir_message = CRUISE;
+static uint8_t correction_loop_number = 0;
 
 
 // IR module thread: read IR proximity measures and give command to motor thread
@@ -35,17 +36,21 @@ static THD_FUNCTION(IRSensorThread, arg) {
         if (front_value > OBSTACLE_DISTANCE) {  // case: detected an obstacle on the front
             led1 = 1;
             ir_message = STOP_MOTOR;  // stop both motors
+            correction_loop_number = 0;  // reset the correction loop number for future event
         }
-        else if ((right_value >= CRUISING_THRESHOLD_RIGHT) && (left_value >= MIN_THRESHOLD_LEFT)) {  // case: closer to the Right
+        else if ((right_value >= CRUISING_THRESHOLD_RIGHT) && (left_value >= MIN_THRESHOLD_LEFT) && (correction_loop_number <= MAX_CORRECTION_NBR)) {  // case: closer to the Right
             led3 = 1;
             ir_message = RIGHT_MOTOR;  // increase right motor speed
+            correction_loop_number += 1;  // increment the loop number
         }
-        else if ((left_value >= CRUISING_THRESHOLD_LEFT) && (right_value >= MIN_THRESHOLD_RIGHT)) {  // case: closer to the Left
+        else if ((left_value >= CRUISING_THRESHOLD_LEFT) && (right_value >= MIN_THRESHOLD_RIGHT) && (correction_loop_number <= MAX_CORRECTION_NBR)) {  // case: closer to the Left
             led7 = 1;
             ir_message = LEFT_MOTOR;  // increase left motor speed
+            correction_loop_number += 1;  // increment the loop number
         }
         else {
             ir_message = CRUISE;  // put robot in normal cruising mode
+            correction_loop_number = 0;  // reset the correction loop number for future event
         }
         chSysUnlock();
         
