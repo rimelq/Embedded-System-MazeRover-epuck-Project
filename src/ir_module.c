@@ -38,12 +38,12 @@ static THD_FUNCTION(IRSensorThread, arg) {
             ir_message = STOP_MOTOR;  // stop both motors
             correction_loop_number = 0;  // reset the correction loop number for future event
         }
-        else if ((right_value >= CRUISING_THRESHOLD_RIGHT) && (left_value >= MIN_THRESHOLD_LEFT) && (correction_loop_number <= MAX_CORRECTION_NBR)) {  // case: closer to the Right
+        else if (((right_value >= CRUISING_THRESHOLD_RIGHT) && (left_value >= MIN_THRESHOLD_LEFT) && (correction_loop_number <= MAX_CORRECTION_NBR) && (right_value > left_value)) || (right_value >= MAX_THRESHOLD_RIGHT)) {  // case: closer to the Right
             led3 = 1;
             ir_message = RIGHT_MOTOR;  // increase right motor speed
             correction_loop_number += 1;  // increment the loop number
         }
-        else if ((left_value >= CRUISING_THRESHOLD_LEFT) && (right_value >= MIN_THRESHOLD_RIGHT) && (correction_loop_number <= MAX_CORRECTION_NBR)) {  // case: closer to the Left
+        else if (((left_value >= CRUISING_THRESHOLD_LEFT) && (right_value >= MIN_THRESHOLD_RIGHT) && (correction_loop_number <= MAX_CORRECTION_NBR) && (right_value < left_value)) || (left_value >= MAX_THRESHOLD_LEFT)) {  // case: closer to the Left
             led7 = 1;
             ir_message = LEFT_MOTOR;  // increase left motor speed
             correction_loop_number += 1;  // increment the loop number
