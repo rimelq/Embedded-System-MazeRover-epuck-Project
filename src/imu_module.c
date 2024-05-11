@@ -12,7 +12,7 @@ static uint8_t orientation = NO_TILT;
 static bool start_function = DISABLE_IMU;
 
 
-// IMU module thread: get maze tilt direction when needed, send result to motor controller thread
+// IMU thread: get maze tilt direction, send result to motor controller thread
 static THD_WORKING_AREA(waIMUThread, 256);
 static THD_FUNCTION(IMUThread, arg) {
     (void)arg;
@@ -23,21 +23,21 @@ static THD_FUNCTION(IMUThread, arg) {
 
 
     while (true) {
-
-        uint8_t temp = NO_TILT;  // temporary variable to get/check the tilt direction before sending to motor thread
+        // temporary variable to check tilt direction before sending to motor thread
+        uint8_t temp = NO_TILT;  
 
         // check if IMU function should start
         start_function = get_start_imu();
         
-        if (start_function == ENABLE_IMU) {  // case: motor thread activated IMU function
-        
-            messagebus_topic_wait(imu_topic, &imu_values, sizeof(imu_values));  // get IMU measured value
+        if (start_function == ENABLE_IMU) {  // case: motor thread activated IMU
+            // get IMU measured value
+            messagebus_topic_wait(imu_topic, &imu_values, sizeof(imu_values));  
             temp = show_gravity(&imu_values);
             if ((temp == RIGHT_TILT) || (temp == LEFT_TILT)) {
-                orientation = temp;  // write onto static variable for motor thread get call function
+                orientation = temp;  // write onto static variable for motor thread
             }
         }
-        else if (start_function == DISABLE_IMU) {  // case: motor thread deactivated IMU
+        else if (start_function == DISABLE_IMU) { //case: motor thread deactivated IMU
             orientation = NO_TILT;  // reset static variable for future event
         }
         
@@ -48,7 +48,8 @@ static THD_FUNCTION(IMUThread, arg) {
 
 // Function that starts the thread
 void imu_module_start(void) {
-    chThdCreateStatic(waIMUThread, sizeof(waIMUThread), NORMALPRIO+2, IMUThread, NULL);
+    chThdCreateStatic(waIMUThread, sizeof(waIMUThread), NORMALPRIO+2, 
+    IMUThread, NULL);
 }
 
 // Function to detect gravity orientation and turn the right LED on
@@ -56,8 +57,8 @@ uint8_t show_gravity(imu_msg_t *imu_values){
 
     uint8_t led3 = 0, led7 = 0;
     uint8_t calculated_orientation = NO_TILT;
-    float threshold = 2.0;  // initial value 3.0
-    float *accel = imu_values->acceleration;  //create a pointer to the array for shorter name
+    float threshold = 2.0;  // threshold for maze tilt angle
+    float *accel = imu_values->acceleration;  //create a pointer to the array
 
     chSysLock();
 
@@ -76,7 +77,7 @@ uint8_t show_gravity(imu_msg_t *imu_values){
 
     chSysUnlock();
 
-    //Turn ON Leds: we invert the values because a led is turned on if the signal is low
+    //Turn ON Leds
     palWritePad(GPIOD, GPIOD_LED3, led3 ? 0 : 1);
     palWritePad(GPIOD, GPIOD_LED7, led7 ? 0 : 1);
 

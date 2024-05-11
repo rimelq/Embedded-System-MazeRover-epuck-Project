@@ -15,26 +15,15 @@ static uint8_t imu_orientation = NO_TILT;
 // Thread for the motor controller module
 static THD_WORKING_AREA(waMotorsModule, 256);
 static THD_FUNCTION(MotorsModule, arg) {
-
-    chRegSetThreadName("MotorController");
-    (void)arg;
-
-    // create static variables for the thread
-    static uint8_t ir_command;
-    static int16_t speed_right = 0;
-    static int16_t speed_left = 0;
-
-
+    (void)arg; chRegSetThreadName("MotorController");
+    static uint8_t ir_command;  // create static variables for the thread
+    static int16_t speed_right = 0, speed_left = 0;
     while(true){
-        
-        if (start_imu == DISABLE_IMU) {  // case: IMU data is not needed (normal cruising mode)
-
-            ir_command = get_ir_message();  // get command to be executed from IR thread
-
+        if (start_imu == DISABLE_IMU) { // case: IMU not needed (normal cruising mode)
+            ir_command = get_ir_message();  // get command to execute from IR thread
             switch (ir_command) {
                 case STOP_MOTOR:  // case: stop motors and wait for IMU directives
-                    speed_right = 0;
-                    speed_left = 0;
+                    speed_right = 0; speed_left = 0;
                     motors_speed_update(speed_right, speed_left);
                     start_imu = ENABLE_IMU;
                     break;
@@ -52,23 +41,19 @@ static THD_FUNCTION(MotorsModule, arg) {
                     speed_right = MOTOR_CRUISING_SPEED;
                     speed_left = MOTOR_CRUISING_SPEED;
                     motors_speed_update(speed_right, speed_left);
-                    break;
-                
-                default:
-                    break;
-            }
+                    break;  
+                default: break; }
         }
         else if (start_imu == ENABLE_IMU) {  // case: waiting for IMU thread response
             imu_orientation = get_orientation_motor();  // get turn direction from IMU
-            if ((imu_orientation == RIGHT_TILT) || (imu_orientation == LEFT_TILT)) {  // case: IMU returned turn direction
+            if ((imu_orientation == RIGHT_TILT) || (imu_orientation == LEFT_TILT)) {
                 start_imu = DISABLE_IMU;
-                motor_controller_turn_90_deg(imu_orientation);  // turn 90deg to the given direction
+                motor_controller_turn_90_deg(imu_orientation);  // turn 90deg
                 speed_right = MOTOR_CRUISING_SPEED;  // reset the cruising speed right
                 speed_left = MOTOR_CRUISING_SPEED;  // reset the cruising speed left
             }
             imu_orientation = NO_TILT;  // reset the static variable for future event
         }
-        
         chThdSleepMilliseconds(50);  // sleep to give hand to other module
     }
 }
@@ -76,7 +61,8 @@ static THD_FUNCTION(MotorsModule, arg) {
 
 // Function that starts the thread
 void motor_controller_start(void) {
-    chThdCreateStatic(waMotorsModule, sizeof(waMotorsModule), NORMALPRIO+1, MotorsModule, NULL);
+    chThdCreateStatic(waMotorsModule, sizeof(waMotorsModule), NORMALPRIO+1, 
+    MotorsModule, NULL);
 }
 
 // Function that updates the speed of each motor
@@ -95,7 +81,7 @@ void motor_controller_turn_90_deg (uint8_t turn_direction) {
         right_motor_set_speed(MOTOR_CRUISING_SPEED);
         left_motor_set_speed(-MOTOR_CRUISING_SPEED);
     }
-    chThdSleepMilliseconds(TURNING_TIME_90DEG);  // sleep duration to make the 90deg turn
+    chThdSleepMilliseconds(TURNING_TIME_90DEG);  // sleep duration for 90deg turn
     // Stop the motors
     right_motor_set_speed(0);
     left_motor_set_speed(0);
