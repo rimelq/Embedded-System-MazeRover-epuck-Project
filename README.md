@@ -1,7 +1,7 @@
 # MazeRover - Embedded System for e-puck2  
 
 ## Project Overview  
-This project, **MazeRover**, was developed as part of the **EPFL MICRO-315 - Embedded Systems & Robotics** course. It features the **e-puck2** robot programmed to navigate a portable **labyrinth** in a **semi-autonomous** manner using **real-time control with ChibiOS RTOS**.  
+This project, **MazeRover**, was developed as part of the **EPFL MICRO-315 - Embedded Systems & Robotics** course by **Rim El Qabli** and **Michel Abela**. It features the **e-puck2** robot programmed to navigate a portable **labyrinth** in a **semi-autonomous** manner using **real-time control with ChibiOS RTOS**.  
 
 The system leverages **infrared proximity sensors** and an **IMU accelerometer** to detect obstacles and adjust its trajectory. The labyrinth’s **inclination**, manually controlled by the user, influences the robot’s movement path.
 
